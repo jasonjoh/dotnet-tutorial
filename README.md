@@ -15,11 +15,11 @@ This guide assumes:
 
 Let's dive right in! In Visual Studio, create a new Visual C# ASP.NET Web Application. Name the application "dotnet-tutorial".
 
-PIC HERE
+![The Visual Studio New Project window.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/new-project.PNG)
 
 Select the `MVC` template. Click the `Change Authentication` button and choose "No Authentication". Un-select the "Host in the cloud" checkbox. The dialog should look like the following.
 
-PIC HERE
+![The Visual Studio Template Selection window.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/template-selection.PNG)
 
 Click OK to have Visual Studio create the project. Once that's done, run the project to make sure everything's working properly by pressing **F5** or choosing **Start Debugging** from the **Debug** menu. You should see a browser open displaying the stock ASP.NET home page. Close your browser.
 
@@ -45,7 +45,7 @@ Let's begin by replacing the stock home page with a simpler one. Open the `./Vie
 
 This is basically repurposing the `jumbotron` element from the stock home page, and removing all of the other elements. The button doesn't do anything yet, but the home page should now look like the following.
 
-PIC HERE
+![The sample app's home page.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/home-page.PNG)
 
 ## Implementing OAuth2 ##
 
@@ -56,15 +56,15 @@ To obtain our client ID and secret, we'll use the Microsoft Office 365 API Tools
 ### Add a connected service ###
 On the **Project** menu, choose **Add Connected Service**. This should open the following dialog.
 
-PIC HERE
+![The Add Connected Service dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/service-manager.PNG)
 
 Select **Office 365 APIs** on the left, then click the **Register your app** link. Sign in with an administrator account for your Office 365 organization. The dialog should now look like the following.
 
-PIC HERE
+![The Add Connected Service dialog after logging in.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/service-manager-logged-in.PNG)
 
 Select **Mail**, then click **Permissions** on the right. Select **Read user mail** and click **Apply**.
 
-PIC HERE
+![The Mail Permissions dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/mail-permissions.PNG)
 
 Click **OK** on the Services Manager dialog. At this point Visual Studio will download and add the `Microsoft.Office365.Discovery` and `Microsoft.Office365.OutlookServices` NuGet packages to your project. It also registers your application in Azure AD and obtains a client ID and secret. Verify they are there by opening the `Web.config` file and looking for the following lines.
 
@@ -74,7 +74,7 @@ Click **OK** on the Services Manager dialog. At this point Visual Studio will do
 
 The next step is to install the `ADAL` library. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Manage NuGet Packages for Solution**. Select **Online** on the left, then enter `ADAL` in the search box in the upper-right corner. Select **Active Directory Authentication Library** from the search results and click **Install**.
 
-PIC HERE
+![The NuGet Package Manager window.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/nuget-package-manager.PNG)
 
 Click through the prompts and install the package. 
 
@@ -335,7 +335,7 @@ All this class does is expose the three properties of the message we want to dis
 
 Now that we have a model, let's create a view based on it. In Solution Explorer, right-click the `./Views/Home` folder and choose **Add**, then **View**. Enter `Inbox` for the **View name**. Change the **Template** field to `List`, and choose `DisplayMessage (dotnet_tutorial.Models)` for the **Model class**. Leave everything else as default values and click **Add**.
 
-PIC HERE
+![The Add View dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/add-view.PNG)
 
 Just one more thing to do. Let's update the `Inbox` function to use our new model and view. 
 
@@ -382,7 +382,7 @@ The changes here are minimal. Instead of building a string with the results, we 
 
 Save your changes and run the app. You should now get a list of messages that looks something like this.
 
-PIC HERE
+![The sample app displaying a user's inbox.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/inbox-display.PNG)
 
 ## Next Steps ##
 

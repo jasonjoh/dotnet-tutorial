@@ -2,7 +2,7 @@
 
 The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
-This tutorial will use the [Microsoft Office 365 API Tools](https://visualstudiogallery.msdn.microsoft.com/a15b85e6-69a7-4fdf-adda-a38066bb5155)
+This tutorial will use the [Microsoft Office 365 API Tools](https://visualstudiogallery.msdn.microsoft.com/a15b85e6-69a7-4fdf-adda-a38066bb5155) to register the app and add helpful NuGet packages for calling the Mail API.
 
 ## Before you begin ##
 
@@ -49,7 +49,7 @@ This is basically repurposing the `jumbotron` element from the stock home page, 
 
 ## Implementing OAuth2 ##
 
-Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [Microsoft.IdentityModel.Clients.ActiveDirectory NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/2.16.204221202) to handle our OAuth requests. The library actually handles the OAuth flow for us as needed, so there's not a lot of implementation that we have to do. We just need to do a little configuration to obtain a client ID and secret.
+Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [Microsoft.IdentityModel.Clients.ActiveDirectory NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/2.16.204221202) to handle our OAuth requests.
 
 To obtain our client ID and secret, we'll use the Microsoft Office 365 API Tools. If you don't already have these installed, go ahead and install them by going to https://visualstudiogallery.msdn.microsoft.com/a15b85e6-69a7-4fdf-adda-a38066bb5155 and clicking **Get Now**. 
 
@@ -93,8 +93,8 @@ Now add a new method called `SignIn` to the `HomeController` class.
 	public ActionResult SignIn()
     {
         string authority = "https://login.microsoftonline.com/common";
-        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"];
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"];
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The url in our app that Azure should redirect to after successful signin

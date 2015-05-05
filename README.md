@@ -2,7 +2,7 @@
 
 The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
-This tutorial will use the [Microsoft Office 365 API Tools](https://visualstudiogallery.msdn.microsoft.com/a15b85e6-69a7-4fdf-adda-a38066bb5155) to register the app and add helpful NuGet packages for calling the Mail API.
+This tutorial will use the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the app and add helpful NuGet packages for calling the Mail API.
 
 ## Before you begin ##
 
@@ -51,7 +51,7 @@ This is basically repurposing the `jumbotron` element from the stock home page, 
 
 Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [Microsoft.IdentityModel.Clients.ActiveDirectory NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/2.16.204221202) to handle our OAuth requests.
 
-To obtain our client ID and secret, we'll use the Microsoft Office 365 API Tools. If you don't already have these installed, go ahead and install them by going to https://visualstudiogallery.msdn.microsoft.com/a15b85e6-69a7-4fdf-adda-a38066bb5155 and clicking **Get Now**. 
+To obtain our client ID and secret, we'll use the Microsoft Office 365 API Tools. If you don't already have these installed, go ahead and install them by going to http://aka.ms/OfficeDevToolsForVS2013. 
 
 ### Add a connected service ###
 On the **Project** menu, choose **Add Connected Service**. This should open the following dialog.
@@ -69,8 +69,7 @@ Select **Mail**, then click **Permissions** on the right. Select **Read user mai
 Click **OK** on the Services Manager dialog. At this point Visual Studio will download and add the `Microsoft.Office365.Discovery` and `Microsoft.Office365.OutlookServices` NuGet packages to your project. It also registers your application in Azure AD and obtains a client ID and secret. Verify they are there by opening the `Web.config` file and looking for the following lines.
 
 	<add key="ida:ClientID" value="SOME GUID" />
-    <add key="ida:Password" value="SOME BASE64 VALUE" />
-    <add key="ida:AuthorizationUri" value="https://login.windows.net" />
+    <add key="ida:ClientSecret" value="SOME BASE64 VALUE" />
 
 The next step is to install the `ADAL` library. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Manage NuGet Packages for Solution**. Select **Online** on the left, then enter `ADAL` in the search box in the upper-right corner. Select **Active Directory Authentication Library** from the search results and click **Install**.
 
@@ -94,7 +93,7 @@ Now add a new method called `SignIn` to the `HomeController` class.
     {
         string authority = "https://login.microsoftonline.com/common";
         string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"];
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"];
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"];
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The url in our app that Azure should redirect to after successful signin
@@ -128,7 +127,7 @@ This doesn't do anything but display the authorization code returned by Azure, b
     {
         string authority = "https://login.microsoftonline.com/common";
         string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The url in our app that Azure should redirect to after successful signin
@@ -172,7 +171,7 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
 
         string authority = "https://login.microsoftonline.com/common";
         string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request
@@ -229,7 +228,7 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
 
         string authority = "https://login.microsoftonline.com/common";
         string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request
@@ -281,11 +280,13 @@ Update the `Inbox` function with the following code.
 
             var mailResults = await client.Me.Messages
                               .OrderByDescending(m => m.DateTimeReceived)
-                              .Take(10).ExecuteAsync();
+							  .Take(10)
+							  .Select(m => new { m.Subject, m.DateTimeReceived, m.From })
+                              .ExecuteAsync();
 
             string content = "";
 
-            foreach (Message msg in mailResults.CurrentPage)
+            foreach (var msg in mailResults.CurrentPage)
             {
                 content += string.Format("Subject: {0}<br/>", msg.Subject);
             }
@@ -304,6 +305,7 @@ To summarize the new code in the `mail` function:
 - It issues a GET request to the URL for inbox messages, with the following characteristics:
 	- It uses the `OrderBy()` function with a value of `DateTimeReceived desc` to sort the results by DateTimeReceived.
 	- It uses the `Take()` function with a value of `10` to limit the results to the first 10.
+	- It uses the `Select()` function to limit the fields returned to only those that we need.
 - It loops over the results and prints out the subject.
 
 If you restart the app now, you should get a very basic listing of email subjects. However, we can use the features of MVC to do better than that.
@@ -322,16 +324,17 @@ Open the `./Models/DisplayMessage.cs` file and replace the empty class definitio
         public DateTimeOffset DateTimeReceived { get; set; }
         public string From { get; set; }
 
-        public DisplayMessage(Microsoft.Office365.OutlookServices.Message message)
+        public DisplayMessage(string subject, DateTimeOffset? dateTimeReceived, 
+            Microsoft.Office365.OutlookServices.Recipient from)
         {
-            this.Subject = message.Subject;
-            this.DateTimeReceived = (DateTimeOffset)message.DateTimeReceived;
-            this.From = string.Format("{0} ({1})", message.From.EmailAddress.Name, 
-                            message.From.EmailAddress.Address);
+            this.Subject = subject;
+            this.DateTimeReceived = (DateTimeOffset)dateTimeReceived;
+            this.From = string.Format("{0} ({1})", from.EmailAddress.Name,
+                            from.EmailAddress.Address);
         }
     }
 
-All this class does is expose the three properties of the message we want to display. The constructor takes a `Microsoft.Office365.OutlookServices.Message` object and extracts the information we need.
+All this class does is expose the three properties of the message we want to display.
 
 Now that we have a model, let's create a view based on it. In Solution Explorer, right-click the `./Views/Home` folder and choose **Add**, then **View**. Enter `Inbox` for the **View name**. Change the **Template** field to `List`, and choose `DisplayMessage (dotnet_tutorial.Models)` for the **Model class**. Leave everything else as default values and click **Add**.
 
@@ -361,16 +364,11 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
 
             var mailResults = await client.Me.Messages
                               .OrderByDescending(m => m.DateTimeReceived)
-                              .Take(10).ExecuteAsync();
+                              .Take(10)
+                              .Select(m => new Models.DisplayMessage(m.Subject, m.DateTimeReceived, m.From))
+                              .ExecuteAsync();
 
-            List<Models.DisplayMessage> messages = new List<Models.DisplayMessage>();
-            
-            foreach (Message msg in mailResults.CurrentPage)
-            {
-                messages.Add(new Models.DisplayMessage(msg));
-            }
-
-            return View(messages);
+            return View(mailResults.CurrentPage);
         }
         catch (AdalException ex)
         {

@@ -90,16 +90,11 @@ namespace dotnet_tutorial.Controllers
 
                 var mailResults = await client.Me.Messages
                                   .OrderByDescending(m => m.DateTimeReceived)
-                                  .Take(10).ExecuteAsync();
+                                  .Take(10)
+                                  .Select(m => new Models.DisplayMessage(m.Subject, m.DateTimeReceived, m.From))
+                                  .ExecuteAsync();
 
-                List<Models.DisplayMessage> messages = new List<Models.DisplayMessage>();
-                
-                foreach (Message msg in mailResults.CurrentPage)
-                {
-                    messages.Add(new Models.DisplayMessage(msg));
-                }
-
-                return View(messages);
+                return View(mailResults.CurrentPage);
             }
             catch (AdalException ex)
             {

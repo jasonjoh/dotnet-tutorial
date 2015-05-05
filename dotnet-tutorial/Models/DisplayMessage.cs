@@ -12,12 +12,13 @@ namespace dotnet_tutorial.Models
         public DateTimeOffset DateTimeReceived { get; set; }
         public string From { get; set; }
 
-        public DisplayMessage(Microsoft.Office365.OutlookServices.Message message)
+        public DisplayMessage(string subject, DateTimeOffset? dateTimeReceived, 
+            Microsoft.Office365.OutlookServices.Recipient from)
         {
-            this.Subject = message.Subject;
-            this.DateTimeReceived = (DateTimeOffset)message.DateTimeReceived;
-            this.From = string.Format("{0} ({1})", message.From.EmailAddress.Name, 
-                            message.From.EmailAddress.Address);
+            this.Subject = subject;
+            this.DateTimeReceived = (DateTimeOffset)dateTimeReceived;
+            this.From = string.Format("{0} ({1})", from.EmailAddress.Name,
+                            from.EmailAddress.Address);
         }
     }
 }

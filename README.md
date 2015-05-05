@@ -376,7 +376,7 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
         }
     }
 
-The changes here are minimal. Instead of building a string with the results, we instead create a `List` object that contains `DisplayMessage` objects. That `List` gets passed to the `View` function.
+The changes here are minimal. Instead of building a string with the results, we instead create a new `DisplayMessage` object within the `Select` function. This causes the `mailResults.CurrentPage` collection to be a collection of `DisplayMessage` objects, which is perfect for our view.
 
 Save your changes and run the app. You should now get a list of messages that looks something like this.
 

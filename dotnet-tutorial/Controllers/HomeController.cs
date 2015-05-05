@@ -22,7 +22,7 @@ namespace dotnet_tutorial.Controllers
         {
             string authority = "https://login.microsoftonline.com/common";
             string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-            string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+            string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
             // The url in our app that Azure should redirect to after successful signin
@@ -44,7 +44,7 @@ namespace dotnet_tutorial.Controllers
 
             string authority = "https://login.microsoftonline.com/common";
             string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-            string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:Password"]; ;
+            string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
             // The same url we specified in the auth code request

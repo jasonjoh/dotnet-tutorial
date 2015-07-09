@@ -4,6 +4,13 @@ The purpose of this guide is to walk through the process of creating a simple AS
 
 This tutorial will use the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the app and add helpful NuGet packages for calling the Mail API.
 
+**NOTE:** If you are downloading this sample, you'll need to do a few things to get it to run.
+
+1. Open the dotnet-tutorial.sln file.
+2. Right-click **References** in Solution Explorer and choose **Manage NuGet Packages**.
+3. Click the **Restore** button in the **Manage NuGet Packages** dialog to download all of the required packages.
+4. Add the connected service as directed in the **Add a connected service** section below.
+
 ## Before you begin ##
 
 This guide assumes:

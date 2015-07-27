@@ -13,24 +13,25 @@ namespace dotnet_tutorial.Controllers
 {
     public class HomeController : Controller
     {
+        // The required scopes for our app
+        private static string[] scopes = { "https://outlook.office.com/mail.read" };
+
         public ActionResult Index()
         {
             return View();
         }
 
-        public ActionResult SignIn()
+        public async Task<ActionResult> SignIn()
         {
             string authority = "https://login.microsoftonline.com/common";
-            string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-            string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
+            string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; 
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
             // The url in our app that Azure should redirect to after successful signin
-            string redirectUri = Url.Action("Authorize", "Home", null, Request.Url.Scheme);
+            Uri redirectUri = new Uri(Url.Action("Authorize", "Home", null, Request.Url.Scheme));
 
             // Generate the parameterized URL for Azure signin
-            Uri authUri = authContext.GetAuthorizationRequestURL("https://outlook.office365.com/", clientId,
-                new Uri(redirectUri), UserIdentifier.AnyUser, "prompt=login");
+            Uri authUri = await authContext.GetAuthorizationRequestUrlAsync(scopes, null, clientId, redirectUri, UserIdentifier.AnyUser, null);
 
             // Redirect the browser to the Azure signin page
             return Redirect(authUri.ToString());
@@ -46,9 +47,9 @@ namespace dotnet_tutorial.Controllers
             string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
             string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
             AuthenticationContext authContext = new AuthenticationContext(authority);
-
+            
             // The same url we specified in the auth code request
-            string redirectUri = Url.Action("Authorize", "Home", null, Request.Url.Scheme);
+            Uri redirectUri = new Uri(Url.Action("Authorize", "Home", null, Request.Url.Scheme));
 
             // Use client ID and secret to establish app identity
             ClientCredential credential = new ClientCredential(clientId, clientSecret);
@@ -57,10 +58,10 @@ namespace dotnet_tutorial.Controllers
             {
                 // Get the token
                 var authResult = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                    authCode, new Uri(redirectUri), credential, "https://outlook.office365.com/");
+                    authCode, redirectUri, credential, scopes);
 
                 // Save the token in the session
-                Session["access_token"] = authResult.AccessToken;
+                Session["access_token"] = authResult.Token;
 
                 return Redirect(Url.Action("Inbox", "Home", null, Request.Url.Scheme));
             }

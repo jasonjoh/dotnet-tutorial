@@ -1,22 +1,23 @@
 # Getting Started with the Outlook Mail API and ASP.NET #
 
-The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365. The source code in this repository is what you should end up with if you follow the steps outlined here.
+The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365 or Outlook.com. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
-This tutorial will use the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the app and add helpful NuGet packages for calling the Mail API.
+This tutorial will use the TODO: UPDATE LINK [Active Directory Authentication Library (Prerelease)](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/3.5.207081303-alpha) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET](http://www.nuget.org/packages/Microsoft.Office365.OutlookServices/) to call the Mail API.
+
+**NOTE:** The previous version of this tutorial used the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the application in Azure AD. The registrations created with this tool are incompatible with Outlook.com, so this tutorial has been updated to use the [Application Registration Portal](https://apps.dev.microsoft.com) instead.
 
 **NOTE:** If you are downloading this sample, you'll need to do a few things to get it to run.
 
 1. Open the dotnet-tutorial.sln file.
 2. Right-click **References** in Solution Explorer and choose **Manage NuGet Packages**.
 3. Click the **Restore** button in the **Manage NuGet Packages** dialog to download all of the required packages.
-4. Add the connected service as directed in the **Add a connected service** section below.
 
 ## Before you begin ##
 
 This guide assumes:
 
 - That you already have Visual Studio 2013 installed and working on your development machine. 
-- That you have an Office 365 tenant, with access to an administrator account in that tenant.
+- That you have an Office 365 tenant, with access to an administrator account in that tenant, **OR** an Outlook.com developer preview account.
 
 ## Create the app ##
 
@@ -34,7 +35,7 @@ Now that we've confirmed that the app is working, we're ready to do some real wo
 
 ## Designing the app ##
 
-Our app will be very simple. When a user visits the site, they will see a button to log in and view their email. Clicking that button will take them to the Azure login page where they can login with their Office 365 account and grant access to our app. Finally, they will be redirected back to our app, which will display a list of the most recent email in the user's inbox.
+Our app will be very simple. When a user visits the site, they will see a button to log in and view their email. Clicking that button will take them to the Azure login page where they can login with their Office 365  or Outlook.com account and grant access to our app. Finally, they will be redirected back to our app, which will display a list of the most recent email in the user's inbox.
 
 Let's begin by replacing the stock home page with a simpler one. Open the `./Views/Home/Index.cshtml` file. Replace the existing code with the following code.
 
@@ -56,33 +57,38 @@ This is basically repurposing the `jumbotron` element from the stock home page, 
 
 ## Implementing OAuth2 ##
 
-Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [Microsoft.IdentityModel.Clients.ActiveDirectory NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/2.16.204221202) to handle our OAuth requests.
+Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the TODO: UPDATE LINK[Microsoft.IdentityModel.Clients.ActiveDirectory Prerelease NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/3.5.207081303-alpha) to handle our OAuth requests.
 
-To obtain our client ID and secret, we'll use the Microsoft Office 365 API Tools. If you don't already have these installed, go ahead and install them by going to http://aka.ms/OfficeDevToolsForVS2013. 
+Before we proceed, we need to register our app to obtain a client ID and secret. Head over to https://apps.dev.microsoft.com to quickly get a client ID and secret. Using the sign in buttons, sign in with either your Microsoft account (Outlook.com), or your work or school account (Office 365).
 
-### Add a connected service ###
-On the **Project** menu, choose **Add Connected Service**. This should open the following dialog.
+![The Application Registration Portal Sign In Page](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/sign-in.PNG)
 
-![The Add Connected Service dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/service-manager.PNG)
+Once you're signed in, click the **Add an app** button. Enter `dotnet-tutorial` for the name and click **Create application**. After the app is created, locate the **Application Secrets** section, and click the **Generate New Password** button. Copy the password now and save it to a safe place. Once you've copied the password, click **Ok**.
 
-Select **Office 365 APIs** on the left, then click the **Register your app** link. Sign in with an administrator account for your Office 365 organization. The dialog should now look like the following.
+![The new password dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/new-password.PNG)
 
-![The Add Connected Service dialog after logging in.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/service-manager-logged-in.PNG)
+Locate the **Platforms** section, and click **Add Platform**. Choose **Web**, then enter `http://localhost:<PORT>/Home/Authorize` under **Redirect URIs**, where `<PORT>` is the port number that the Visual Studio Development Server is using for your project. You can locate this by selecting the `dotnet-tutorial` project in Solution Explorer, then checking the value for `URL` in the Properties window.
 
-Select **Mail**, then click **Permissions** on the right. Select **Read user mail** and click **Apply**.
+![The project properties window in Solution Explorer.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/dev-server-port.PNG)
 
-![The Mail Permissions dialog.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/mail-permissions.PNG)
+Click **Save** to complete the registration. Copy the **Application Id** and save it along with the password you copied earlier. We'll need those values soon.
 
-Click **OK** on the Services Manager dialog. At this point Visual Studio will download and add the `Microsoft.Office365.Discovery` and `Microsoft.Office365.OutlookServices` NuGet packages to your project. It also registers your application in Azure AD and obtains a client ID and secret. Verify they are there by opening the `Web.config` file and looking for the following lines.
+Here's what the details of your app registration should look like when you are done.
 
-	<add key="ida:ClientID" value="SOME GUID" />
-    <add key="ida:ClientSecret" value="SOME BASE64 VALUE" />
+![The completed registration properties.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/dotnet-tutorial.PNG)
 
-The next step is to install the `ADAL` library. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Manage NuGet Packages for Solution**. Select **Online** on the left, then enter `ADAL` in the search box in the upper-right corner. Select **Active Directory Authentication Library** from the search results and click **Install**.
+Open the `Web.config` file and add the following keys inside the `<appSettings>` element:
+
+	<add key="ida:ClientID" value="YOUR APP ID" />
+    <add key="ida:ClientSecret" value="YOUR APP PASSWORD" />
+
+Replace the value of the `ida:clientID` key with the application ID you generated above, and replace the value of the `ida:ClientSecret` key with the password you generated above.
+
+TODO: UPDATE TO INSTALL v4 The next step is to install the ADAL and Outlook libraries from NuGet. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Manage NuGet Packages for Solution**. Select **Online** on the left, then enter `ADAL` in the search box in the upper-right corner. Select **Active Directory Authentication Library** from the search results and click **Install**. 
 
 ![The NuGet Package Manager window.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/nuget-package-manager.PNG)
 
-Click through the prompts and install the package. 
+Click through the prompts and install the package. Once the installation completes, enter `OutlookServices` in the search box, then select **Microsoft Office 365 Mail, Calendar and Contacts Library** and click **Install**.
 
 ### Back to coding ###
 
@@ -92,23 +98,28 @@ Now we're all set to do the sign in. Let's start by adding a `SignIn` action to 
 	using Microsoft.IdentityModel.Clients.ActiveDirectory;
 	using Microsoft.Office365.OutlookServices;
 
+Add a private static string array to the `HomeController` class to hold the scopes that the app will request.
+
+#### `scopes` array in `./Controllers/HomeController.cs` ####
+
+	// The required scopes for our app
+    private static string[] scopes = { "https://outlook.office.com/mail.read" };
+
 Now add a new method called `SignIn` to the `HomeController` class.
 
 #### `SignIn` action in `./Controllers/HomeController.cs` ####
 
-	public ActionResult SignIn()
+	public async Task<ActionResult> SignIn()
     {
         string authority = "https://login.microsoftonline.com/common";
         string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"];
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"];
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The url in our app that Azure should redirect to after successful signin
-        string redirectUri = "#"; // TEMPORARY
+        Uri redirectUri = new Uri("#"); // TEMPORARY
 
         // Generate the parameterized URL for Azure signin
-        Uri authUri = authContext.GetAuthorizationRequestURL("https://outlook.office365.com/", clientId,
-            new Uri(redirectUri), UserIdentifier.AnyUser, "prompt=login");
+        Uri authUri = await authContext.GetAuthorizationRequestUrlAsync(scopes, null, clientId, redirectUri, UserIdentifier.AnyUser, null);
 
         // Redirect the browser to the Azure signin page
         return Redirect(authUri.ToString());
@@ -133,16 +144,14 @@ This doesn't do anything but display the authorization code returned by Azure, b
 	public ActionResult SignIn()
     {
         string authority = "https://login.microsoftonline.com/common";
-        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
+        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; 
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The url in our app that Azure should redirect to after successful signin
-        string redirectUri = Url.Action("Authorize", "Home", null, Request.Url.Scheme);
+        Uri redirectUri = new Uri(Url.Action("Authorize", "Home", null, Request.Url.Scheme));
 
         // Generate the parameterized URL for Azure signin
-        Uri authUri = authContext.GetAuthorizationRequestURL("https://outlook.office365.com/", clientId,
-            new Uri(redirectUri), UserIdentifier.AnyUser, "prompt=login");
+        Uri authUri = await authContext.GetAuthorizationRequestUrlAsync(scopes, null, clientId, redirectUri, UserIdentifier.AnyUser, null);
 
         // Redirect the browser to the Azure signin page
         return Redirect(authUri.ToString());
@@ -182,7 +191,7 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request
-        string redirectUri = Url.Action("Authorize", "Home", null, Request.Url.Scheme);
+        Uri redirectUri = new Uri(Url.Action("Authorize", "Home", null, Request.Url.Scheme));
 
         // Use client ID and secret to establish app identity
         ClientCredential credential = new ClientCredential(clientId, clientSecret);
@@ -191,12 +200,12 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
         {
             // Get the token
             var authResult = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                authCode, new Uri(redirectUri), credential, "https://outlook.office365.com/");
+                authCode, redirectUri, credential, scopes);
 
 			// Save the token in the session
-            Session["access_token"] = authResult.AccessToken;
+            Session["access_token"] = authResult.Token;
 
-            return Content("Access Token: " + authResult.AccessToken);
+            return Content("Access Token: " + authResult.Token);
         }
         catch (AdalException ex)
         {
@@ -239,7 +248,7 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request
-        string redirectUri = Url.Action("Authorize", "Home", null, Request.Url.Scheme);
+        Uri redirectUri = new Uri(Url.Action("Authorize", "Home", null, Request.Url.Scheme));
 
         // Use client ID and secret to establish app identity
         ClientCredential credential = new ClientCredential(clientId, clientSecret);
@@ -248,10 +257,10 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
         {
             // Get the token
             var authResult = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                authCode, new Uri(redirectUri), credential, "https://outlook.office365.com/");
+                    authCode, redirectUri, credential, scopes);
 
             // Save the token in the session
-            Session["access_token"] = authResult.AccessToken;
+            Session["access_token"] = authResult.Token;
 
             return Redirect(Url.Action("Inbox", "Home", null, Request.Url.Scheme));
         }
@@ -278,7 +287,7 @@ Update the `Inbox` function with the following code.
 
         try
         {
-            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office365.com/api/v1.0"),
+            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
                 async () =>
                 {
                     // Since we have it locally from the Session, just return it here.
@@ -362,7 +371,7 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
 
         try
         {
-            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office365.com/api/v1.0"),
+            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
                 async () =>
                 {
                     // Since we have it locally from the Session, just return it here.

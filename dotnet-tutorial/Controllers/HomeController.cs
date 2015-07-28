@@ -82,7 +82,7 @@ namespace dotnet_tutorial.Controllers
 
             try
             {
-                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office365.com/api/v1.0"),
+                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
                     async () =>
                     {
                         // Since we have it locally from the Session, just return it here.

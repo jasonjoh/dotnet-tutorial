@@ -186,8 +186,8 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
         string authCode = Request.Params["code"];
 
         string authority = "https://login.microsoftonline.com/common";
-        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
+        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"];
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"];
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request
@@ -243,8 +243,8 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
         string authCode = Request.Params["code"];
 
         string authority = "https://login.microsoftonline.com/common";
-        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"]; ;
-        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"]; ;
+        string clientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientID"];
+        string clientSecret = System.Configuration.ConfigurationManager.AppSettings["ida:ClientSecret"];
         AuthenticationContext authContext = new AuthenticationContext(authority);
 
         // The same url we specified in the auth code request

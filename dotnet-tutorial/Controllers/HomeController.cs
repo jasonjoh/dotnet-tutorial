@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Office365.OutlookServices;
 
 namespace dotnet_tutorial.Controllers

@@ -2,7 +2,7 @@
 
 The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365 or Outlook.com. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
-This tutorial will use the TODO: UPDATE LINK [Active Directory Authentication Library (Prerelease)](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/3.5.207081303-alpha) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET](http://www.nuget.org/packages/Microsoft.Office365.OutlookServices/) to call the Mail API.
+This tutorial will use the [Active Directory Authentication Library (Prerelease)](https://www.nuget.org/packages/Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory/4.0.208020147-alpha) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET](http://www.nuget.org/packages/Microsoft.Office365.OutlookServices/) to call the Mail API.
 
 **NOTE:** The previous version of this tutorial used the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the application in Azure AD. The registrations created with this tool are incompatible with Outlook.com, so this tutorial has been updated to use the [Application Registration Portal](https://apps.dev.microsoft.com) instead.
 
@@ -57,7 +57,7 @@ This is basically repurposing the `jumbotron` element from the stock home page, 
 
 ## Implementing OAuth2 ##
 
-Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the TODO: UPDATE LINK[Microsoft.IdentityModel.Clients.ActiveDirectory Prerelease NuGet package](http://www.nuget.org/packages/Microsoft.IdentityModel.Clients.ActiveDirectory/3.5.207081303-alpha) to handle our OAuth requests.
+Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory Prerelease NuGet package](https://www.nuget.org/packages/Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory/4.0.208020147-alpha) to handle our OAuth requests.
 
 Before we proceed, we need to register our app to obtain a client ID and secret. Head over to https://apps.dev.microsoft.com to quickly get a client ID and secret. Using the sign in buttons, sign in with either your Microsoft account (Outlook.com), or your work or school account (Office 365).
 
@@ -84,18 +84,20 @@ Open the `Web.config` file and add the following keys inside the `<appSettings>`
 
 Replace the value of the `ida:clientID` key with the application ID you generated above, and replace the value of the `ida:ClientSecret` key with the password you generated above.
 
-TODO: UPDATE TO INSTALL v4 The next step is to install the ADAL and Outlook libraries from NuGet. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Manage NuGet Packages for Solution**. Select **Online** on the left, then enter `ADAL` in the search box in the upper-right corner. Select **Active Directory Authentication Library** from the search results and click **Install**. 
+The next step is to install the ADAL and Outlook libraries from NuGet. On the Visual Studio **Tools** menu, choose **NuGet Package Manager**, then **Package Manager Console**. To install the ADAL library, enter the following command in the Package Manager Console:
 
-![The NuGet Package Manager window.](https://raw.githubusercontent.com/jasonjoh/dotnet-tutorial/master/readme-images/nuget-package-manager.PNG)
+    PM> Install-Package Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory -Version 4.0.208020147-alpha -Pre 
 
-Click through the prompts and install the package. Once the installation completes, enter `OutlookServices` in the search box, then select **Microsoft Office 365 Mail, Calendar and Contacts Library** and click **Install**.
+Next install the **Microsoft Office 365 Mail, Calendar and Contacts Library** with the following command:
+
+    PM> Install-Package Microsoft.Office365.OutlookServices
 
 ### Back to coding ###
 
 Now we're all set to do the sign in. Let's start by adding a `SignIn` action to the `HomeController` class. Open the `.\Controllers\HomeController.cs` file. At the top of the file, add the following lines:
 
 	using System.Threading.Tasks;
-	using Microsoft.IdentityModel.Clients.ActiveDirectory;
+	using Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory;
 	using Microsoft.Office365.OutlookServices;
 
 Add a private static string array to the `HomeController` class to hold the scopes that the app will request.

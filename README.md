@@ -4,7 +4,7 @@ The purpose of this guide is to walk through the process of creating a simple AS
 
 This tutorial will use the [Active Directory Authentication Library (Prerelease)](https://www.nuget.org/packages/Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory/4.0.208020147-alpha) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET](http://www.nuget.org/packages/Microsoft.Office365.OutlookServices/) to call the Mail API.
 
-**NOTE:** The previous version of this tutorial used the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the application in Azure AD. The registrations created with this tool are incompatible with Outlook.com, so this tutorial has been updated to use the [Application Registration Portal](https://apps.dev.microsoft.com) instead.
+**NOTE:** The previous version of this tutorial used the [Microsoft Office 365 API Tools](http://aka.ms/OfficeDevToolsForVS2013) to register the application in Azure AD. The registrations created with this tool are incompatible with Outlook.com, so this tutorial has been updated to use the [Application Registration Portal](https://apps.dev.microsoft.com) instead. For the original version, see [the v1 branch](https://github.com/jasonjoh/dotnet-tutorial/tree/v1).
 
 **NOTE:** If you are downloading this sample, you'll need to do a few things to get it to run.
 
@@ -207,6 +207,9 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
 			// Save the token in the session
             Session["access_token"] = authResult.Token;
 
+			// Try to get user info
+            Session["user_email"] = GetUserEmail(authContext, clientId);
+
             return Content("Access Token: " + authResult.Token);
         }
         catch (AdalException ex)
@@ -214,6 +217,73 @@ Now let's update the `Authorize` function to retrieve a token. Replace the curre
             return Content(string.Format("ERROR retrieving token: {0}", ex.Message));
         }
     }
+
+### Getting the user's email address ###
+
+The values returned by `AcquireTokenByAuthorizationCodeAsync` don't just include the access token. It also contains in ID token. We can use this token to find out a few pieces of information about the logged on user. In this case, we want to get the user's email address. You'll see why we want this soon.
+
+**NOTE:** The prerelease version of ADAL v4 doesn't return the ID token directly, but it is accessible. The method included here is intended to work around this issue until ADAL is updated.
+
+Let's start by implementing `GetUserEmail`. 
+
+#### `GetUserEmail` function in `./Controllers/HomeController.cs` ####
+
+	private string GetUserEmail(AuthenticationContext context, string clientId)
+	{
+	    // ADAL caches the ID token in its token cache by the client ID
+	    foreach (TokenCacheItem item in context.TokenCache.ReadItems())
+	    {
+	        if (item.Scope.Contains(clientId))
+	        {
+	            return GetEmailFromIdToken(item.Token);
+	        }
+	    }
+	
+	    return string.Empty;
+	}
+
+This function loops through the ADAL token cache to find the ID token, then passes the token to a `GetEmailFromIdToken` function. Let's implement that.
+
+#### `GetEmailFromIdToken` function in in `./Controllers/HomeController.cs` ####
+
+	private string GetEmailFromIdToken(string token)
+	{
+	    // JWT is made of three parts, separated by a '.' 
+	    // First part is the header 
+	    // Second part is the token 
+	    // Third part is the signature 
+	    string[] tokenParts = token.Split('.');
+	
+	    if (tokenParts.Length < 3)
+	    {
+	        // Invalid token, return empty
+	    }
+	
+	    // Token content is in the second part, in urlsafe base64
+	    string encodedToken = tokenParts[1];
+	
+	    // Convert from urlsafe and add padding if needed
+	    int leftovers = encodedToken.Length % 4;
+	    if (leftovers == 2)
+	    {
+	        encodedToken += "==";
+	    }
+	    else if (leftovers == 3)
+	    {
+	        encodedToken += "=";
+	    }
+	    encodedToken = encodedToken.Replace('-', '+').Replace('_', '/');
+	
+	    // Decode the string
+	    var base64EncodedBytes = System.Convert.FromBase64String(encodedToken);
+	    string decodedToken = System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+	
+	    // Load the decoded JSON into a dynamic object
+	    dynamic jwt = Newtonsoft.Json.JsonConvert.DeserializeObject(decodedToken);
+	
+	    // User's email is in the preferred_username field
+	    return jwt.preferred_username;
+	}
 
 Save your changes and restart the app. This time, after you sign in, you should see an access token displayed. Now that we can retrieve the access token, we're ready to call the Mail API.
 
@@ -226,13 +296,14 @@ Let's start by adding a new action to the `HomeController` class. Open the `.\Co
 	public async Task<ActionResult> Inbox()
     {
         string token = (string)Session["access_token"];
+		string email = (string)Session["user_email"];
         if (string.IsNullOrEmpty(token))
         {
             // If there's no token in the session, redirect to Home
             return Redirect("/");
         }
 
-        return Content(string.Format("Found token in session: {0}", token));
+        return Content(string.Format("Email: {0}, Token: {1}", email, token));
     }
 
 Now update the `Authorize` function to redirect to the `Inbox` action after successfully retrieving a token.
@@ -264,6 +335,9 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
             // Save the token in the session
             Session["access_token"] = authResult.Token;
 
+			// Try to get user info
+            Session["user_email"] = GetUserEmail(authContext, clientId);
+
             return Redirect(Url.Action("Inbox", "Home", null, Request.Url.Scheme));
         }
         catch (AdalException ex)
@@ -272,7 +346,7 @@ Now update the `Authorize` function to redirect to the `Inbox` action after succ
         }
     }
 
-If you run the app now, you won't see much of a change. It still just displays the access token. The difference is we're displaying it from the Inbox action, which verifies that we succeeded in passing the token via the `Session`. Let's put it to use.
+If you run the app now, you won't see much of a change. It still just displays the access token. The difference is we're displaying it from the Inbox action, which verifies that we succeeded in passing the token via the `Session`, and we're also displaying the user's email. Let's put these values to use.
 
 Update the `Inbox` function with the following code.
 
@@ -281,6 +355,7 @@ Update the `Inbox` function with the following code.
 	public async Task<ActionResult> Inbox()
     {
         string token = (string)Session["access_token"];
+		string email = (string)Session["user_email"];
         if (string.IsNullOrEmpty(token))
         {
             // If there's no token in the session, redirect to Home
@@ -295,6 +370,9 @@ Update the `Inbox` function with the following code.
                     // Since we have it locally from the Session, just return it here.
                     return token;
                 });
+
+			client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs> (
+                (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
 
             var mailResults = await client.Me.Messages
                               .OrderByDescending(m => m.DateTimeReceived)
@@ -320,11 +398,21 @@ Update the `Inbox` function with the following code.
 To summarize the new code in the `mail` function:
 
 - It creates an `OutlookServicesClient` object.
+- It adds an event handler for the `SendingRequest2` event on the `OutlookServicesClient` object. This is where our work to get the user's email pays off. The event handler (which we will implement shortly) will add an `X-AnchorMailbox` HTTP header to the outgoing API requests. Setting this header to the user's mailbox allows the API endpoint to route API calls to the appropriate backend mailbox server more efficiently.
 - It issues a GET request to the URL for inbox messages, with the following characteristics:
 	- It uses the `OrderBy()` function with a value of `DateTimeReceived desc` to sort the results by DateTimeReceived.
 	- It uses the `Take()` function with a value of `10` to limit the results to the first 10.
 	- It uses the `Select()` function to limit the fields returned to only those that we need.
 - It loops over the results and prints out the subject.
+
+Now let's implement the `InsertXAnchorMailboxHeader` function.
+
+#### `InsertXAnchorMailboxHeader` function in `./Controllers/HomeController.cs` ####
+
+	private void InsertXAnchorMailboxHeader(object sender, Microsoft.OData.Client.SendingRequest2EventArgs e, string email)
+	{
+	    e.RequestMessage.SetHeader("X-AnchorMailbox", email);
+	}
 
 If you restart the app now, you should get a very basic listing of email subjects. However, we can use the features of MVC to do better than that.
 
@@ -379,6 +467,9 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
                     // Since we have it locally from the Session, just return it here.
                     return token;
                 });
+
+			client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs> (
+                (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
 
             var mailResults = await client.Me.Messages
                               .OrderByDescending(m => m.DateTimeReceived)

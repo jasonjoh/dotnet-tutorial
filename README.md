@@ -453,6 +453,7 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
 	public async Task<ActionResult> Inbox()
     {
         string token = (string)Session["access_token"];
+		string email = (string)Session["user_email"];
         if (string.IsNullOrEmpty(token))
         {
             // If there's no token in the session, redirect to Home

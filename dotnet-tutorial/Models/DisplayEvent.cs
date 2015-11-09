@@ -16,8 +16,6 @@ namespace dotnet_tutorial.Models
             this.Subject = subject;
             this.Start = DateTime.Parse(start);
             this.End = DateTime.Parse(end);
-
-
         }
     }
 }

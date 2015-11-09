@@ -17,8 +17,8 @@ namespace dotnet_tutorial.Models
         {
             this.Subject = subject;
             this.DateTimeReceived = (DateTimeOffset)dateTimeReceived;
-            this.From = string.Format("{0} ({1})", from.EmailAddress.Name,
-                            from.EmailAddress.Address);
+            this.From = from != null ? string.Format("{0} ({1})", from.EmailAddress.Name,
+                from.EmailAddress.Address) : "EMPTY";
         }
     }
 }

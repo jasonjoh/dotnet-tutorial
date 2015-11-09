@@ -14,7 +14,11 @@ namespace dotnet_tutorial.Controllers
     public class HomeController : Controller
     {
         // The required scopes for our app
-        private static string[] scopes = { "https://outlook.office.com/mail.read" };
+        private static string[] scopes = { 
+                                           "https://outlook.office.com/mail.read",
+                                           "https://outlook.office.com/calendars.read",
+                                           "https://outlook.office.com/contacts.read"
+                                         };
 
         public ActionResult Index()
         {
@@ -86,7 +90,7 @@ namespace dotnet_tutorial.Controllers
 
             try
             {
-                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
+                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"),
                     async () =>
                     {
                         // Since we have it locally from the Session, just return it here.
@@ -97,9 +101,9 @@ namespace dotnet_tutorial.Controllers
                     (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
 
                 var mailResults = await client.Me.Messages
-                                  .OrderByDescending(m => m.DateTimeReceived)
+                                  .OrderByDescending(m => m.ReceivedDateTime)
                                   .Take(10)
-                                  .Select(m => new Models.DisplayMessage(m.Subject, m.DateTimeReceived, m.From))
+                                  .Select(m => new Models.DisplayMessage(m.Subject, m.ReceivedDateTime, m.From))
                                   .ExecuteAsync();
 
                 return View(mailResults.CurrentPage);
@@ -107,6 +111,78 @@ namespace dotnet_tutorial.Controllers
             catch (AdalException ex)
             {
                 return Content(string.Format("ERROR retrieving messages: {0}", ex.Message));
+            }
+        }
+
+        public async Task<ActionResult> Calendar()
+        {
+            string token = (string)Session["access_token"];
+            string email = (string)Session["user_email"];
+            if (string.IsNullOrEmpty(token))
+            {
+                // If there's no token in the session, redirect to Home
+                return Redirect("/");
+            }
+
+            try
+            {
+                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"),
+                    async () =>
+                    {
+                        // Since we have it locally from the Session, just return it here.
+                        return token;
+                    });
+
+                client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs>(
+                    (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
+
+                var eventResults = await client.Me.Events
+                                    .OrderByDescending(e => e.Start.DateTime)
+                                    .Take(10)
+                                    .Select(e => new Models.DisplayEvent(e.Subject, e.Start.DateTime, e.End.DateTime))
+                                    .ExecuteAsync();
+
+                return View(eventResults.CurrentPage);
+            }
+            catch (AdalException ex)
+            {
+                return Content(string.Format("ERROR retrieving events: {0}", ex.Message));
+            }
+        }
+
+        public async Task<ActionResult> Contacts()
+        {
+            string token = (string)Session["access_token"];
+            string email = (string)Session["user_email"];
+            if (string.IsNullOrEmpty(token))
+            {
+                // If there's no token in the session, redirect to Home
+                return Redirect("/");
+            }
+
+            try
+            {
+                OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"),
+                    async () =>
+                    {
+                        // Since we have it locally from the Session, just return it here.
+                        return token;
+                    });
+
+                client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs>(
+                    (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
+
+                var contactResults = await client.Me.Contacts
+                                    .OrderBy(c => c.DisplayName)
+                                    .Take(10)
+                                    .Select(c => new Models.DisplayContact(c.DisplayName, c.EmailAddresses, c.MobilePhone1))
+                                    .ExecuteAsync();
+
+                return View(contactResults.CurrentPage);
+            }
+            catch (AdalException ex)
+            {
+                return Content(string.Format("ERROR retrieving contacts: {0}", ex.Message));
             }
         }
 

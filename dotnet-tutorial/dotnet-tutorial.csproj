@@ -45,11 +45,11 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.4.0.208020147-alpha\lib\net45\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.4.0.208052020-alpha\lib\net45\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.Platform, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.4.0.208020147-alpha\lib\net45\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.4.0.208052020-alpha\lib\net45\Microsoft.Experimental.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.OData.Client, Version=6.13.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -69,8 +69,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Office365.OutlookServices.Portable, Version=1.0.34.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Office365.OutlookServices.1.0.35\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+xamarinios10+MonoTouch10\Microsoft.Office365.OutlookServices.Portable.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\private\Microsoft.Office365.OutlookServices.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Spatial, Version=6.13.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Spatial.6.13.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.Spatial.dll</HintPath>
@@ -146,6 +146,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DisplayContact.cs" />
+    <Compile Include="Models\DisplayEvent.cs" />
     <Compile Include="Models\DisplayMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -198,6 +200,8 @@
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Inbox.cshtml" />
+    <Content Include="Views\Home\Calendar.cshtml" />
+    <Content Include="Views\Home\Contacts.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

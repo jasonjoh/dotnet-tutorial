@@ -90,7 +90,7 @@ The next step is to install the ADAL and Outlook libraries from NuGet. On the Vi
 
 Next install the **Microsoft Office 365 Mail, Calendar and Contacts Library** with the following command:
 
-    PM> Install-Package Microsoft.Office365.OutlookServices
+    PM> Install-Package Microsoft.Office365.OutlookServices-V2.0
 
 ### Back to coding ###
 

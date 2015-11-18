@@ -364,7 +364,7 @@ Update the `Inbox` function with the following code.
 
         try
         {
-            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
+            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"),
                 async () =>
                 {
                     // Since we have it locally from the Session, just return it here.
@@ -375,9 +375,9 @@ Update the `Inbox` function with the following code.
                 (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
 
             var mailResults = await client.Me.Messages
-                              .OrderByDescending(m => m.DateTimeReceived)
+                              .OrderByDescending(m => m.ReceivedDateTime)
 							  .Take(10)
-							  .Select(m => new { m.Subject, m.DateTimeReceived, m.From })
+							  .Select(m => new { m.Subject, m.ReceivedDateTime, m.From })
                               .ExecuteAsync();
 
             string content = "";
@@ -400,7 +400,7 @@ To summarize the new code in the `mail` function:
 - It creates an `OutlookServicesClient` object.
 - It adds an event handler for the `SendingRequest2` event on the `OutlookServicesClient` object. This is where our work to get the user's email pays off. The event handler (which we will implement shortly) will add an `X-AnchorMailbox` HTTP header to the outgoing API requests. Setting this header to the user's mailbox allows the API endpoint to route API calls to the appropriate backend mailbox server more efficiently.
 - It issues a GET request to the URL for inbox messages, with the following characteristics:
-	- It uses the `OrderBy()` function with a value of `DateTimeReceived desc` to sort the results by DateTimeReceived.
+	- It uses the `OrderBy()` function with a value of `ReceivedDateTime desc` to sort the results by ReceivedDateTime.
 	- It uses the `Take()` function with a value of `10` to limit the results to the first 10.
 	- It uses the `Select()` function to limit the fields returned to only those that we need.
 - It loops over the results and prints out the subject.
@@ -418,7 +418,7 @@ If you restart the app now, you should get a very basic listing of email subject
 
 ### Displaying the results ###
 
-MVC can generate views based on a model. So let's start by creating a model that represents the properties of a message that we'd like to display. For our purposes, we'll choose `Subject`, `DateTimeReceived`, and `From`. In Visual Studio's Solution Explorer, right-click the `./Models` folder and choose **Add**, then **Class**. Name the class `DisplayMessage` and click **Add**.
+MVC can generate views based on a model. So let's start by creating a model that represents the properties of a message that we'd like to display. For our purposes, we'll choose `Subject`, `ReceivedDateTime`, and `From`. In Visual Studio's Solution Explorer, right-click the `./Models` folder and choose **Add**, then **Class**. Name the class `DisplayMessage` and click **Add**.
 
 Open the `./Models/DisplayMessage.cs` file and replace the empty class definition with the following.
 
@@ -427,16 +427,16 @@ Open the `./Models/DisplayMessage.cs` file and replace the empty class definitio
 	public class DisplayMessage
     {
         public string Subject { get; set; }
-        public DateTimeOffset DateTimeReceived { get; set; }
+        public DateTimeOffset ReceivedDateTime { get; set; }
         public string From { get; set; }
 
         public DisplayMessage(string subject, DateTimeOffset? dateTimeReceived, 
             Microsoft.Office365.OutlookServices.Recipient from)
         {
             this.Subject = subject;
-            this.DateTimeReceived = (DateTimeOffset)dateTimeReceived;
-            this.From = string.Format("{0} ({1})", from.EmailAddress.Name,
-                            from.EmailAddress.Address);
+            this.ReceivedDateTime = (DateTimeOffset)dateTimeReceived;
+            this.From = from != null ? string.Format("{0} ({1})", from.EmailAddress.Name,
+                            from.EmailAddress.Address) | "EMPTY";
         }
     }
 
@@ -462,7 +462,7 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
 
         try
         {
-            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v1.0"),
+            OutlookServicesClient client = new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"),
                 async () =>
                 {
                     // Since we have it locally from the Session, just return it here.
@@ -473,9 +473,9 @@ Just one more thing to do. Let's update the `Inbox` function to use our new mode
                 (sender, e) => InsertXAnchorMailboxHeader(sender, e, email));
 
             var mailResults = await client.Me.Messages
-                              .OrderByDescending(m => m.DateTimeReceived)
+                              .OrderByDescending(m => m.ReceivedDateTime)
                               .Take(10)
-                              .Select(m => new Models.DisplayMessage(m.Subject, m.DateTimeReceived, m.From))
+                              .Select(m => new Models.DisplayMessage(m.Subject, m.ReceivedDateTime, m.From))
                               .ExecuteAsync();
 
             return View(mailResults.CurrentPage);

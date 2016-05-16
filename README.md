@@ -2,7 +2,7 @@
 
 The purpose of this guide is to walk through the process of creating a simple ASP.NET MVC C# app that retrieves messages in Office 365 or Outlook.com. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
-This tutorial will use the [Microsoft Authentication Library (MSAL)](https://www.nuget.org/packages/Microsoft.Identity.Client) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET](http://www.nuget.org/packages/Microsoft.Office365.OutlookServices/) to call the Mail API.
+This tutorial will use the [Microsoft Authentication Library (MSAL)](https://www.nuget.org/packages/Microsoft.Identity.Client) to make OAuth2 calls and the [Microsoft Office 365 Mail, Calendar, and Contacts Library for .NET v2.0](https://www.nuget.org/packages/Microsoft.Office365.OutlookServices-V2.0/) to call the Mail API.
 
 > **NOTE:** If you are downloading this sample, you'll need to do a few things to get it to run.
 >

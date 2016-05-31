@@ -759,7 +759,7 @@ Save your changes and run the app. You should now get a list of messages that lo
 
 ## Next Steps ##
 
-Now that you've created a working sample, you may want to learn more about the [capabilities of the Mail API](https://msdn.microsoft.com/office/office365/APi/mail-rest-operations). If your sample isn't working, and you want to compare, you can download the end result of this tutorial from [GitHub](https://github.com/jasonjoh/dotnet-tutorial). If you download the project from GitHub, be sure to re-run the Add Connected Service wizard to register the app before trying it.
+Now that you've created a working sample, you may want to learn more about the [capabilities of the Mail API](https://msdn.microsoft.com/office/office365/APi/mail-rest-operations). If your sample isn't working, and you want to compare, you can download the end result of this tutorial from [GitHub](https://github.com/jasonjoh/dotnet-tutorial).
 
 ## Copyright ##
 
@@ -768,4 +768,4 @@ Copyright (c) Microsoft. All rights reserved.
 ----------
 Connect with me on Twitter [@JasonJohMSFT](https://twitter.com/JasonJohMSFT)
 
-Follow the [Exchange Dev Blog](http://blogs.msdn.com/b/exchangedev/)
+Follow the [Outlook/Exchange Dev Blog](http://blogs.msdn.com/b/exchangedev/)

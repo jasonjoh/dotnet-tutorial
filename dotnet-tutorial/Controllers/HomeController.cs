@@ -156,7 +156,7 @@ namespace dotnet_tutorial.Controllers
             }
             catch (MsalException ex)
             {
-                return Content(string.Format("ERROR retrieving messages: {0}", ex.Message));
+                return RedirectToAction("Error", "Home", new { message = "ERROR retrieving messages", debug = ex.Message }); 
             }
         }
 
@@ -189,7 +189,7 @@ namespace dotnet_tutorial.Controllers
             }
             catch (MsalException ex)
             {
-                return Content(string.Format("ERROR retrieving events: {0}", ex.Message));
+                return RedirectToAction("Error", "Home", new { message = "ERROR retrieving events", debug = ex.Message });
             }
         }
 
@@ -222,7 +222,7 @@ namespace dotnet_tutorial.Controllers
             }
             catch (MsalException ex)
             {
-                return Content(string.Format("ERROR retrieving contacts: {0}", ex.Message));
+                return RedirectToAction("Error", "Home", new { message = "ERROR retrieving contacts", debug = ex.Message });
             }
         }
 
@@ -243,6 +243,13 @@ namespace dotnet_tutorial.Controllers
             ViewBag.Message = "Your contact page.";
 
             return View();
+        }
+
+        public ActionResult Error(string message, string debug)
+        {
+            ViewBag.Message = message;
+            ViewBag.Debug = debug;
+            return View("Error");
         }
     }
 }

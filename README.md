@@ -652,7 +652,7 @@ public async Task<ActionResult> Inbox()
     }
     catch (MsalException ex)
     {
-        return Content(string.Format("ERROR retrieving messages: {0}", ex.Message));
+        return RedirectToAction("Error", "Home", new { message = "ERROR retrieving messages", debug = ex.Message }); 
     }
 }
 ```
@@ -746,7 +746,7 @@ public async Task<ActionResult> Inbox()
     }
     catch (MsalException ex)
     {
-        return Content(string.Format("ERROR retrieving messages: {0}", ex.Message));
+        return RedirectToAction("Error", "Home", new { message = "ERROR retrieving messages", debug = ex.Message }); 
     }
 }
 ```

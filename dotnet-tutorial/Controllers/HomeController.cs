@@ -149,10 +149,11 @@ namespace dotnet_tutorial.Controllers
                 var mailResults = await client.Me.Messages
                                     .OrderByDescending(m => m.ReceivedDateTime)
                                     .Take(10)
-                                    .Select(m => new Models.DisplayMessage(m.Subject, m.ReceivedDateTime, m.From))
                                     .ExecuteAsync();
 
-                return View(mailResults.CurrentPage);
+                var displayResults = mailResults.CurrentPage.Select(m => new Models.DisplayMessage(m.Subject, m.ReceivedDateTime, m.From));
+
+                return View(displayResults);
             }
             catch (MsalException ex)
             {

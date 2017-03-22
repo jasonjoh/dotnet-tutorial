@@ -1,5 +1,5 @@
-﻿@* Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.*@
-@model IEnumerable<dotnet_tutorial.Models.DisplayMessage>
+﻿@* Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.*@
+@model IEnumerable<Microsoft.Graph.Message>
 
 @{
     ViewBag.Title = "Inbox";
@@ -7,40 +7,32 @@
 
 <h2>Inbox</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Subject)
+            Subject
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.DateTimeReceived)
+            Received
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.From)
+            From
         </th>
-        <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Subject)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.DateTimeReceived)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.From)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Subject)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReceivedDateTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.From.EmailAddress.Name) &lt;@Html.DisplayFor(modelItem => item.From.EmailAddress.Address)&gt;
+            </td>
+        </tr>
+    }
 
 </table>

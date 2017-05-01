@@ -1,4 +1,5 @@
-﻿@model IEnumerable<dotnet_tutorial.Models.DisplayEvent>
+﻿@* Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.*@
+@model IEnumerable<Microsoft.Graph.Event>
 
 @{
     ViewBag.Title = "Calendar";
@@ -6,21 +7,17 @@
 
 <h2>Calendar</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Subject)
+            Subject
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Start)
+            Start
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.End)
+            End
         </th>
-        <th></th>
     </tr>
 
 @foreach (var item in Model) {
@@ -29,15 +26,10 @@
             @Html.DisplayFor(modelItem => item.Subject)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.Start)
+            @Html.DisplayFor(modelItem => item.Start.DateTime) (@Html.DisplayFor(modelItem => item.Start.TimeZone))
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.End)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            @Html.DisplayFor(modelItem => item.End.DateTime) (@Html.DisplayFor(modelItem => item.End.TimeZone))
         </td>
     </tr>
 }

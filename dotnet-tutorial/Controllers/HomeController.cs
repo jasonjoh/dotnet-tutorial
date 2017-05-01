@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
+﻿// Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.
 using System;
 using System.Configuration;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
+using Microsoft.Graph;
 using Microsoft.Identity.Client;
-using Microsoft.Office365.OutlookServices;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
@@ -113,15 +115,22 @@ namespace dotnet_tutorial.Controllers
 
         public async Task<string> GetUserEmail()
         {
-            OutlookServicesClient client =
-                new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"), GetAccessToken);
+            GraphServiceClient client = new GraphServiceClient(
+                new DelegateAuthenticationProvider(
+                    async (requestMessage) =>
+                    {
+                        string accessToken = await GetAccessToken();
+                        requestMessage.Headers.Authorization =
+                            new AuthenticationHeaderValue("Bearer", accessToken);
+                    }));
 
+            // Get the user's email address
             try
             {
-                var userDetail = await client.Me.ExecuteAsync();
-                return userDetail.EmailAddress;
+                Microsoft.Graph.User user = await client.Me.Request().GetAsync();
+                return user.Mail;
             }
-            catch (MsalException ex)
+            catch (ServiceException ex)
             {
                 return string.Format("#ERROR#: Could not get user's email address. {0}", ex.Message);
             }
@@ -138,26 +147,31 @@ namespace dotnet_tutorial.Controllers
 
             string userEmail = await GetUserEmail();
 
-            OutlookServicesClient client =
-                new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"), GetAccessToken);
+            GraphServiceClient client = new GraphServiceClient(
+                new DelegateAuthenticationProvider(
+                    (requestMessage) =>
+                    {
+                        requestMessage.Headers.Authorization =
+                            new AuthenticationHeaderValue("Bearer", token);
 
-            client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs>(
-                (sender, e) => InsertXAnchorMailboxHeader(sender, e, userEmail));
+                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
+
+                        return Task.FromResult(0);
+                    }));
 
             try
             {
-                var mailResults = await client.Me.Messages
-                                    .OrderByDescending(m => m.ReceivedDateTime)
-                                    .Take(10)
-                                    .ExecuteAsync();
+                var mailResults = await client.Me.MailFolders.Inbox.Messages.Request()
+                                    .OrderBy("receivedDateTime DESC")
+                                    .Select("subject,receivedDateTime,from")
+                                    .Top(10)
+                                    .GetAsync();
 
-                var displayResults = mailResults.CurrentPage.Select(m => new Models.DisplayMessage(m.Subject, m.ReceivedDateTime, m.From));
-
-                return View(displayResults);
+                return View(mailResults.CurrentPage);
             }
-            catch (MsalException ex)
+            catch (ServiceException ex)
             {
-                return RedirectToAction("Error", "Home", new { message = "ERROR retrieving messages", debug = ex.Message }); 
+                return RedirectToAction("Error", "Home", new { message = "ERROR retrieving messages", debug = ex.Message });
             }
         }
 
@@ -172,23 +186,29 @@ namespace dotnet_tutorial.Controllers
 
             string userEmail = await GetUserEmail();
 
-            OutlookServicesClient client =
-                new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"), GetAccessToken);
+            GraphServiceClient client = new GraphServiceClient(
+                new DelegateAuthenticationProvider(
+                    (requestMessage) =>
+                    {
+                        requestMessage.Headers.Authorization =
+                            new AuthenticationHeaderValue("Bearer", token);
 
-            client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs>(
-                (sender, e) => InsertXAnchorMailboxHeader(sender, e, userEmail));
+                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
+
+                        return Task.FromResult(0);
+                    }));
 
             try
             {
-                var eventResults = await client.Me.Events
-                                    .OrderByDescending(e => e.Start.DateTime)
-                                    .Take(10)
-                                    .Select(e => new Models.DisplayEvent(e.Subject, e.Start.DateTime, e.End.DateTime))
-                                    .ExecuteAsync();
+                var eventResults = await client.Me.Events.Request()
+                                    .OrderBy("start/dateTime DESC")
+                                    .Select("subject,start,end")
+                                    .Top(10)
+                                    .GetAsync();
 
                 return View(eventResults.CurrentPage);
             }
-            catch (MsalException ex)
+            catch (ServiceException ex)
             {
                 return RedirectToAction("Error", "Home", new { message = "ERROR retrieving events", debug = ex.Message });
             }
@@ -205,31 +225,32 @@ namespace dotnet_tutorial.Controllers
 
             string userEmail = await GetUserEmail();
 
-            OutlookServicesClient client =
-                new OutlookServicesClient(new Uri("https://outlook.office.com/api/v2.0"), GetAccessToken);
+            GraphServiceClient client = new GraphServiceClient(
+                new DelegateAuthenticationProvider(
+                    (requestMessage) =>
+                    {
+                        requestMessage.Headers.Authorization =
+                            new AuthenticationHeaderValue("Bearer", token);
 
-            client.Context.SendingRequest2 += new EventHandler<Microsoft.OData.Client.SendingRequest2EventArgs>(
-                (sender, e) => InsertXAnchorMailboxHeader(sender, e, userEmail));
+                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
+
+                        return Task.FromResult(0);
+                    }));
 
             try
             {
-                var contactResults = await client.Me.Contacts
-                                    .OrderBy(c => c.DisplayName)
-                                    .Take(10)
-                                    .Select(c => new Models.DisplayContact(c.DisplayName, c.EmailAddresses, c.MobilePhone1))
-                                    .ExecuteAsync();
+                var contactResults = await client.Me.Contacts.Request()
+                                    .OrderBy("displayName")
+                                    .Select("displayName,emailAddresses,mobilePhone")
+                                    .Top(10)
+                                    .GetAsync();
 
                 return View(contactResults.CurrentPage);
             }
-            catch (MsalException ex)
+            catch (ServiceException ex)
             {
                 return RedirectToAction("Error", "Home", new { message = "ERROR retrieving contacts", debug = ex.Message });
             }
-        }
-
-        private void InsertXAnchorMailboxHeader(object sender, Microsoft.OData.Client.SendingRequest2EventArgs e, string email)
-        {
-            e.RequestMessage.SetHeader("X-AnchorMailbox", email);
         }
 
         public ActionResult About()
@@ -254,24 +275,3 @@ namespace dotnet_tutorial.Controllers
         }
     }
 }
-
-// MIT License:
-
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// ""Software""), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

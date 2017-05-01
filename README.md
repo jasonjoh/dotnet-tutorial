@@ -1,6 +1,6 @@
 # Getting Started with the Microsoft Graph Outlook Mail API and ASP.NET
 
-The sample code in this repository is the end result of going through the [.NET tutorial on the Outlook Dev Center](https://dev.outlook.com/restapi/tutorial/dotnet). If you go through that tutorial yourself, you should end up with code very similar to this. If you download or fork this repository, you'll need to follow the steps in [Configure the sample](#configure-the-sample) to run it.
+The sample code in this repository is the end result of going through the [.NET tutorial on the Outlook Dev Center](https://docs.microsoft.com/en-us/outlook/rest/dotnet-tutorial). If you go through that tutorial yourself, you should end up with code very similar to this. If you download or fork this repository, you'll need to follow the steps in [Configure the sample](#configure-the-sample) to run it.
 
 > **NOTE:** Looking for the version of this tutorial that used the Outlook API directly instead of Microsoft Graph? Check out the `outlook-api` branch. Note that Microsoft recommends using the Microsoft Graph to access mail, calendar, and contacts. You should use the Outlook APIs directly (via https://outlook.office.com/api) only if you require a feature that is not available on the Graph endpoints.
 

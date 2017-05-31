@@ -38,7 +38,7 @@ namespace dotnet_tutorial.Controllers
                 // authenticated but not have a valid token cache. Check for this
                 // and force signout.
                 SessionTokenCache tokenCache = new SessionTokenCache(userId, HttpContext);
-                if (tokenCache.Count <= 0)
+                if (!tokenCache.HasData())
                 {
                     // Cache is empty, sign out
                     return RedirectToAction("SignOut");
@@ -68,10 +68,9 @@ namespace dotnet_tutorial.Controllers
 
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    string appId = ConfigurationManager.AppSettings["ida:AppId"];
                     // Get the user's token cache and clear it
                     SessionTokenCache tokenCache = new SessionTokenCache(userId, HttpContext);
-                    tokenCache.Clear(appId);
+                    tokenCache.Clear();
                 }
             }
             // Send an OpenID Connect sign-out request. 
@@ -100,14 +99,14 @@ namespace dotnet_tutorial.Controllers
                 SessionTokenCache tokenCache = new SessionTokenCache(userId, HttpContext);
 
                 ConfidentialClientApplication cca = new ConfidentialClientApplication(
-                    appId, redirectUri, new ClientCredential(appPassword), tokenCache);
+                    appId, redirectUri, new ClientCredential(appPassword), tokenCache.GetMsalCacheInstance(), null);
 
                 // Call AcquireTokenSilentAsync, which will return the cached
                 // access token if it has not expired. If it has expired, it will
                 // handle using the refresh token to get a new one.
-                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scopes);
+                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scopes, cca.Users.First());
 
-                accessToken = result.Token;
+                accessToken = result.AccessToken;
             }
 
             return accessToken;

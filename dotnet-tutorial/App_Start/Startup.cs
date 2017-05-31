@@ -93,11 +93,11 @@ namespace dotnet_tutorial.App_Start
                 notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase);
 
             ConfidentialClientApplication cca = new ConfidentialClientApplication(
-                appId, redirectUri, new ClientCredential(appPassword), tokenCache);
+                appId, redirectUri, new ClientCredential(appPassword), tokenCache.GetMsalCacheInstance(), null);
 
             try
             {
-                var result = await cca.AcquireTokenByAuthorizationCodeAsync(scopes, notification.Code);
+                var result = await cca.AcquireTokenByAuthorizationCodeAsync(notification.Code, scopes);
             }
             catch (MsalException ex)
             {

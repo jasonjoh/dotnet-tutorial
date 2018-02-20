@@ -1,0 +1,7 @@
+﻿@* Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.*@
+@model IEnumerable<Microsoft.Graph.EmailAddress>
+
+@foreach(var item in Model)
+{
+    <p>@Html.DisplayFor(modelItem => item.Address)</p>
+}

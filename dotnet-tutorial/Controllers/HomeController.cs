@@ -112,29 +112,6 @@ namespace dotnet_tutorial.Controllers
             return accessToken;
         }
 
-        public async Task<string> GetUserEmail()
-        {
-            GraphServiceClient client = new GraphServiceClient(
-                new DelegateAuthenticationProvider(
-                    async (requestMessage) =>
-                    {
-                        string accessToken = await GetAccessToken();
-                        requestMessage.Headers.Authorization =
-                            new AuthenticationHeaderValue("Bearer", accessToken);
-                    }));
-
-            // Get the user's email address
-            try
-            {
-                Microsoft.Graph.User user = await client.Me.Request().GetAsync();
-                return user.Mail;
-            }
-            catch (ServiceException ex)
-            {
-                return string.Format("#ERROR#: Could not get user's email address. {0}", ex.Message);
-            }
-        }
-
         public async Task<ActionResult> Inbox()
         {
             string token = await GetAccessToken();
@@ -144,16 +121,12 @@ namespace dotnet_tutorial.Controllers
                 return Redirect("/");
             }
 
-            string userEmail = await GetUserEmail();
-
             GraphServiceClient client = new GraphServiceClient(
                 new DelegateAuthenticationProvider(
                     (requestMessage) =>
                     {
                         requestMessage.Headers.Authorization =
                             new AuthenticationHeaderValue("Bearer", token);
-
-                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
 
                         return Task.FromResult(0);
                     }));
@@ -183,16 +156,12 @@ namespace dotnet_tutorial.Controllers
                 return Redirect("/");
             }
 
-            string userEmail = await GetUserEmail();
-
             GraphServiceClient client = new GraphServiceClient(
                 new DelegateAuthenticationProvider(
                     (requestMessage) =>
                     {
                         requestMessage.Headers.Authorization =
                             new AuthenticationHeaderValue("Bearer", token);
-
-                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
 
                         return Task.FromResult(0);
                     }));
@@ -222,16 +191,12 @@ namespace dotnet_tutorial.Controllers
                 return Redirect("/");
             }
 
-            string userEmail = await GetUserEmail();
-
             GraphServiceClient client = new GraphServiceClient(
                 new DelegateAuthenticationProvider(
                     (requestMessage) =>
                     {
                         requestMessage.Headers.Authorization =
                             new AuthenticationHeaderValue("Bearer", token);
-
-                        requestMessage.Headers.Add("X-AnchorMailbox", userEmail);
 
                         return Task.FromResult(0);
                     }));

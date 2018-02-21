@@ -34,8 +34,18 @@ Here's what the details of your app registration should look like when you are d
 1. Open the dotnet-tutorial.sln file.
 1. Right-click **References** in Solution Explorer and choose **Manage NuGet Packages**.
 1. Click the **Restore** button in the **Manage NuGet Packages** dialog to download all of the required packages.
-1. Open the `Web.config` file and locate the `<add key="ida:AppId" value="YOUR APP ID" />` line. Replace `YOUR APP ID` with the **Application Id** from the registration you just created.
-1. Locate the `<add key="ida:AppPassword" value="YOUR APP PASSWORD" />` line. Replace `YOUR APP PASSWORD` with the password you copied earlier.
+1. Create a new file, `./dotnet-tutorial/AzureOauth.config`. Replace its entire contents with the following.
+
+    ```xml
+    <appSettings>
+        <add key="ida:AppID" value="YOUR APP ID" />
+        <add key="ida:AppPassword" value="YOUR APP PASSWORD" />
+        <add key="ida:RedirectUri" value="http://localhost:10800" />
+        <add key="ida:AppScopes" value="User.Read Mail.Read" />
+    </appSettings>
+    ```
+1. Replace `YOUR APP ID` with the **Application Id** from the registration you just created.
+1. Replace `YOUR APP PASSWORD` with the password you copied earlier.
 
 ## Copyright ##
 

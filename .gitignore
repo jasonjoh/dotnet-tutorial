@@ -51,3 +51,4 @@ readme.html
 *.zip
 adalv4
 /.vs
+dotnet-tutorial/AzureOauth.config
